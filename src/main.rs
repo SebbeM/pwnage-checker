@@ -1,3 +1,7 @@
+use std::io::prelude::*;
+use std::io::BufReader;
+use std::fs::File;
+
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -11,5 +15,10 @@ struct Cli {
 
 fn main() {
     let args = Cli::from_args();
-    println!("{}", args.binary);
+    let f = File::open(&args.path).expect("failed to read file");
+    let mut reader = BufReader::new(f);
+
+    let mut line = String::new();
+    let content = reader.read_line(&mut line);
+    println!("First line: {}", line);
 }
