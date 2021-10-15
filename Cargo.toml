@@ -1,5 +1,5 @@
 [package]
-name = "pwnage-checker"
+name = "pwnage_checker"
 version = "0.1.0"
 authors = ["Sebastian Magnusson <sebbe.magnusson@gmail.com>"]
 edition = "2018"
