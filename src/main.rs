@@ -4,14 +4,20 @@ use std::fs;
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let pass = &args[1];
-    let file = &args[2];
+    let (password, filename) = parse(&args);
 
-    println!("Searching for {}", pass);
-    println!("In file {}", file);
+    println!("Searching for {}", password);
+    println!("In file {}", filename);
 
-    let contents = fs::read_to_string(file)
+    let contents = fs::read_to_string(filename)
         .expect("Something went wrong when reading the file");
 
     println!("With text:\n{}", contents);
+}
+
+fn parse(args: &[String]) -> (&str, &str) {
+    let password = &args[1];
+    let filename = &args[2];
+
+    (password, filename)
 }
