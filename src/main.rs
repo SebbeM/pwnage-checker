@@ -4,7 +4,7 @@ use std::fs;
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let params = parse(&args);
+    let params = Params::new(&args);
 
     println!("Searching for {}", params.pass);
     println!("In file {}", params.file);
@@ -20,9 +20,11 @@ struct Params {
     file: String,
 }
 
-fn parse(args: &[String]) -> Params {
-    let pass = args[1].clone();
-    let file = args[2].clone();
+impl Params {
+    fn new(args: &[String]) -> Params {
+        let pass = args[1].clone();
+        let file = args[2].clone();
 
-    Params { pass, file }
+        Params { pass, file }
+    }
 }
