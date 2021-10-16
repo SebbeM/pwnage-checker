@@ -25,13 +25,6 @@ impl Params {
 }
 
 pub fn run(params: Params) -> Result<(), Box<dyn Error>> {
-    let file = File::open(params.path.clone())?;
-    let reader = BufReader::new(file);
-
-    for line in lin_search(&params.pass, reader) {
-        println!("Linear search found: {}", line);
-    }
-
     let mut file = File::open(params.path.clone())?;
     let len = i64::try_from(file.seek(SeekFrom::End(0)).unwrap()).unwrap();
     println!("The file is {} bytes long", len);
@@ -39,20 +32,6 @@ pub fn run(params: Params) -> Result<(), Box<dyn Error>> {
     println!("Binary search found: {}", bin_search(&params.pass, reader, len));
 
     Ok(())
-}
-
-fn lin_search(pass: &str, reader: BufReader<File>) -> Vec<String> {
-    let mut results = Vec::new();
-
-    for line in reader.lines() {
-        let s = line.unwrap();
-        if s.contains(pass) {
-            results.push(s);
-            println!("Found string");
-        }
-    }
-
-    results
 }
 
 fn bin_search(pass: &str, mut reader: BufReader<File>, step: i64) -> String {
