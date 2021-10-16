@@ -4,6 +4,8 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Seek;
 use std::io::SeekFrom;
+use std::cmp::Ordering;
+use std::convert::TryFrom;
 
 pub struct Params {
     pub pass: String,
@@ -23,20 +25,23 @@ impl Params {
 }
 
 pub fn run(params: Params) -> Result<(), Box<dyn Error>> {
-    let mut file = File::open(params.path.clone())?;
-    let len = file.seek(SeekFrom::End(0)).unwrap();
+    let file = File::open(params.path.clone())?;
     let reader = BufReader::new(file);
 
-    println!("The file is {} bytes long", len);
-
-    for line in search(&params.pass, reader) {
-        println!("{}", line);
+    for line in lin_search(&params.pass, reader) {
+        println!("Linear search found: {}", line);
     }
+
+    let mut file = File::open(params.path.clone())?;
+    let len = i64::try_from(file.seek(SeekFrom::End(0)).unwrap()).unwrap();
+    println!("The file is {} bytes long", len);
+    let reader = BufReader::new(file);
+    println!("Binary search found: {}", bin_search(&params.pass, reader, len));
 
     Ok(())
 }
 
-pub fn search(pass: &str, reader: BufReader<File>) -> Vec<String> {
+fn lin_search(pass: &str, reader: BufReader<File>) -> Vec<String> {
     let mut results = Vec::new();
 
     for line in reader.lines() {
@@ -49,6 +54,21 @@ pub fn search(pass: &str, reader: BufReader<File>) -> Vec<String> {
 
     results
 }
+
+fn bin_search(pass: &str, mut reader: BufReader<File>, step: i64) -> String {
+    reader.seek(SeekFrom::Current(step));
+
+    let mut hash = pass.to_string();
+
+    reader.read_line(&mut hash);
+    if hash.cmp(&pass.to_string()) == Ordering::Less {
+        hash = bin_search(pass, reader, -step / 2);
+    } else if hash.cmp(&pass.to_string()) == Ordering::Greater {
+        hash = bin_search(pass, reader, step / 2);
+    } 
+    hash
+}
+
 
 #[cfg(test)]
 mod tests {
