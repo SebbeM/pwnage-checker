@@ -2,6 +2,8 @@ use std::fs::File;
 use std::error::Error;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::io::Seek;
+use std::io::SeekFrom;
 
 pub struct Params {
     pub pass: String,
@@ -21,11 +23,11 @@ impl Params {
 }
 
 pub fn run(params: Params) -> Result<(), Box<dyn Error>> {
-    let file = File::open(params.path.clone())?;
-    let len = BufReader::new(File::open(params.path).unwrap()).lines().count();
+    let mut file = File::open(params.path.clone())?;
+    let len = file.seek(SeekFrom::End(0)).unwrap();
     let reader = BufReader::new(file);
 
-    println!("The file has {} lines", len);
+    println!("The file is {} bytes long", len);
 
     for line in search(&params.pass, reader) {
         println!("{}", line);
@@ -42,7 +44,6 @@ pub fn search(pass: &str, reader: BufReader<File>) -> Vec<String> {
         if s.contains(pass) {
             results.push(s);
             println!("Found string");
-            break;
         }
     }
 
