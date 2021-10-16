@@ -21,18 +21,21 @@ impl Params {
 }
 
 pub fn run(params: Params) -> Result<(), Box<dyn Error>> {
-    let file = File::open(params.path)?;
+    let file = File::open(params.path.clone())?;
+    let len = BufReader::new(File::open(params.path).unwrap()).lines().count();
+    let reader = BufReader::new(file);
 
-    for line in search(&params.pass, file) {
+    println!("The file has {} lines", len);
+
+    for line in search(&params.pass, reader) {
         println!("{}", line);
     }
 
     Ok(())
 }
 
-pub fn search(pass: &str, file: File) -> Vec<String> {
+pub fn search(pass: &str, reader: BufReader<File>) -> Vec<String> {
     let mut results = Vec::new();
-    let reader = BufReader::new(file);
 
     for line in reader.lines() {
         let s = line.unwrap();
