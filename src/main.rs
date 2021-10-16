@@ -13,7 +13,7 @@ fn main() {
     });
 
     println!("Searching for {}", params.pass);
-    println!("In file {}", params.file);
+    println!("In file {}", params.path);
 
     if let Err(e) = pwnage_checker::run(params) {
         println!("Application error: {}", e);
