@@ -2,5 +2,5 @@
 /.idea
 /.zed
 /res
-Cargo.lockREAD
+Cargo.lock
 *.txt
