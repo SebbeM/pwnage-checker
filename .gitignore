@@ -1,4 +1,6 @@
 /target
 /.idea
+/.zed
 /res
 Cargo.lockREAD
+*.txt
