@@ -3,9 +3,8 @@ use std::cmp::Ordering;
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::error::Error;
-use std::f32::consts::LOG10_2;
 use std::fs::File;
-use std::iter;
+use std::io;
 use std::os::unix::fs::FileExt;
 use std::u64;
 
@@ -52,7 +51,7 @@ pub fn run(params: Params) -> Result<(), Box<dyn Error>> {
 
 fn binary_search(file: File, token: [u8; 40], end: u64) -> Option<usize> {
     let mut low: u64 = 0;
-    let mut high: u64 = u64::try_from(end - 1).unwrap();
+    let mut high: u64 = end - 1;
     let mut iterations: u32 = 0;
     let buf: &mut [u8; 40] = &mut [0; 40];
 
@@ -61,15 +60,7 @@ fn binary_search(file: File, token: [u8; 40], end: u64) -> Option<usize> {
         let mid: u64 = (low + high) / 2;
         eprintln!("Middle is now at {}", mid);
 
-        let mut res = file.read_exact_at(buf, mid);
-        let newline_index = buf.iter().position(|&r| r == b':');
-        if newline_index.is_some() {
-            let new_line: u64 = newline_index.unwrap().try_into().unwrap();
-            let offset = mid + new_line - 40;
-            res = file.read_exact_at(buf, offset);
-        };
-
-        match res {
+        match seek(&file, buf, mid) {
             Err(e) => {
                 println!(
                     "Failed to read {} bytes at position {} due to error {}.",
@@ -85,15 +76,32 @@ fn binary_search(file: File, token: [u8; 40], end: u64) -> Option<usize> {
                     return Some(usize::try_from(mid).unwrap());
                 }
                 Ordering::Less => {
-                    println!("{:?} is greater than {:?}", token, buf);
+                    println!("{:?} is less than {:?}", token, buf);
                     high = mid - 1
                 }
                 Ordering::Greater => {
-                    println!("{:?} is less than {:?}", token, buf);
+                    println!("{:?} is greater than {:?}", token, buf);
                     low = mid + 1
                 }
             },
         }
     }
     None
+}
+
+fn seek(file: &File, buf: &mut [u8; 40], mid: u64) -> io::Result<()> {
+    let res = file.read_exact_at(buf, mid);
+    let colon_index = buf.iter().position(|&r| r == b':');
+    let newline_index = buf.iter().position(|&r| r == b'\n');
+    let index: u64;
+
+    if colon_index.is_some() {
+        index = colon_index.unwrap().try_into().unwrap();
+    } else if newline_index.is_some() {
+        index = newline_index.unwrap().try_into().unwrap();
+    } else {
+        return res;
+    }
+    let offset = mid + index - 40;
+    seek(file, buf, offset)
 }
