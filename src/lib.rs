@@ -6,6 +6,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::os::unix::fs::FileExt;
+use std::str;
 use std::u64;
 
 pub struct Params {
@@ -39,10 +40,7 @@ pub fn run(params: Params) -> Result<(), Box<dyn Error>> {
     );
 
     match binary_search(file, search_token, len) {
-        Some(index) => println!(
-            "Binary search found \"{}\" at index: {}",
-            &params.pass, index
-        ),
+        Some(index) => println!("Password \"{}\" found at index: {}", &params.pass, index),
         None => println!("Password \"{}\" not found", &params.pass),
     }
 
@@ -58,7 +56,6 @@ fn binary_search(file: File, token: [u8; 40], end: u64) -> Option<usize> {
     while low <= high {
         iterations += 1;
         let mid: u64 = (low + high) / 2;
-        eprintln!("Middle is now at {}", mid);
 
         match seek(&file, buf, mid) {
             Err(e) => {
@@ -72,17 +69,15 @@ fn binary_search(file: File, token: [u8; 40], end: u64) -> Option<usize> {
             }
             Ok(_) => match token.cmp(buf) {
                 Ordering::Equal => {
-                    println!("Found token {:?} after {} iterations", token, iterations);
+                    println!(
+                        "Found token {:?} after {} iterations",
+                        str::from_utf8(&token).unwrap(),
+                        iterations
+                    );
                     return Some(usize::try_from(mid).unwrap());
                 }
-                Ordering::Less => {
-                    println!("{:?} is less than {:?}", token, buf);
-                    high = mid - 1
-                }
-                Ordering::Greater => {
-                    println!("{:?} is greater than {:?}", token, buf);
-                    low = mid + 1
-                }
+                Ordering::Less => high = mid - 1,
+                Ordering::Greater => low = mid + 1,
             },
         }
     }
