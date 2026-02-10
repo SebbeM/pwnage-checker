@@ -19,10 +19,10 @@ impl Params {
         if args.len() < 3 {
             return Err("Too few arguments.\nPlease provide a search term and a file name.");
         }
-        let pass = args[1].clone();
-        let path = args[2].clone();
+        let path = args[1].clone();
+        let pass = args[2].clone();
 
-        Ok(Params { pass, path })
+        Ok(Params { path, pass })
     }
 }
 
