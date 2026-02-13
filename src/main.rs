@@ -14,7 +14,7 @@ fn main() {
 
     println!("Searching for {} in file {}", params.pass, params.path);
 
-    if let Err(e) = pwnage_checker::run(params) {
+    if let Err(e) = pwnage_checker::file_search(params) {
         println!("Application error: {}", e);
 
         process::exit(1);

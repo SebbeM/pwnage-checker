@@ -10,3 +10,15 @@ edition = "2024"
 structopt = "0.3.13"
 sha1 = "0.10.6"
 hex = "0.4.3"
+
+# Standard error handling libraries
+thiserror = "2.0"   # For defining error types
+anyhow = "1.0"      # For error context and propagation
+
+# Optional but recommended
+tracing-error = "0.2.1"   # For error tracing
+miette = "6.0"          # For diagnostic error reporting
+
+[dependencies.reqwest]
+version = "0.13.2"
+features = ["blocking"]
