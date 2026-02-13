@@ -25,10 +25,10 @@ impl Params {
 
 pub fn run(params: Params) -> Result<(), Box<dyn Error>> {
     let hashed_pass = format!("{:X}", Sha1::digest(&params.pass));
-    let search_token: [u8; 40] = hashed_pass.as_bytes().try_into().unwrap();
+    let search_token: [u8; 40] = hashed_pass.as_bytes().try_into()?;
 
-    let file: File = File::open(&params.path).unwrap();
-    let file_len = file.metadata().unwrap().len();
+    let file: File = File::open(&params.path)?;
+    let file_len = file.metadata()?.len();
     println!(
         "The file is {} bytes long. The search should take aproximately {} iterations.",
         file_len,
