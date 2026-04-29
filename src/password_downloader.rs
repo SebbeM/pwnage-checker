@@ -1,4 +1,3 @@
-use crate::str::Bytes;
 use anyhow::{Error, Ok};
 use reqwest::blocking::Response;
 use std::{fs::File, io::Write};

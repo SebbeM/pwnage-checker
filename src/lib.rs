@@ -57,7 +57,24 @@ pub fn file_search(params: Params) -> Result<(), Error> {
         file_len.ilog2()
     );
 
-    match binary_search::search(file, search_token, file_len) {
+    match binary_search::file_search(file, search_token, file_len) {
+        Some(index) => println!("Password \"{}\" found at index: {}", &params.pass, index),
+        None => println!("Password \"{}\" not found", &params.pass),
+    }
+
+    Ok(())
+}
+
+pub fn range_search(params: Params) -> Result<(), Error> {
+    let hashed_pass = format!("{:X}", Sha1::digest(&params.pass));
+    let search_token: [u8; 40] = hashed_pass.as_bytes().try_into()?;
+
+    let (range, _rest) = hashed_pass.split_at(5);
+    let response = password_downloader::download_range(u32::from_str_radix(range, 16)?);
+    let arr: Vec<u8> = response.bytes()?.to_vec();
+    let end = arr.len() as u64;
+
+    match binary_search::range_search(&arr, search_token, end) {
         Some(index) => println!("Password \"{}\" found at index: {}", &params.pass, index),
         None => println!("Password \"{}\" not found", &params.pass),
     }
