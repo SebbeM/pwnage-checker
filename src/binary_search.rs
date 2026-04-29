@@ -41,11 +41,11 @@ pub fn file_search(file: File, token: [u8; 40], end: u64) -> Option<usize> {
     None
 }
 
-pub fn range_search(array: &[u8], token: [u8; 40], end: u64) -> Option<usize> {
+pub fn range_search(array: &[u8], token: [u8; 35], end: u64) -> Option<usize> {
     let mut low: u64 = 0;
     let mut high: u64 = end - 1;
     let mut iterations: u32 = 0;
-    let buf: &mut [u8; 40] = &mut [0; 40];
+    let buf: &mut [u8; 35] = &mut [0; 35];
 
     while low <= high {
         iterations += 1;
@@ -79,40 +79,34 @@ pub fn range_search(array: &[u8], token: [u8; 40], end: u64) -> Option<usize> {
 }
 
 fn file_seek(file: &File, buf: &mut [u8; 40], mid: u64) -> io::Result<()> {
-    let res = file.read_exact_at(buf, mid);
-    let colon_index = buf.iter().position(|&r| r == b':');
-    let newline_index = buf.iter().position(|&r| r == b'\n');
-    let index: u64;
-
-    if colon_index.is_some() {
-        index = colon_index.unwrap().try_into().unwrap();
-    } else if newline_index.is_some() {
-        index = newline_index.unwrap().try_into().unwrap();
+    let line_start = if mid == 0 {
+        0
     } else {
-        return res;
-    }
-    let offset = mid + index - 40;
-    file_seek(file, buf, offset)
+        let mut pos = mid;
+        let mut byte = [0u8; 1];
+        loop {
+            pos -= 1;
+            file.read_exact_at(&mut byte, pos)?;
+            if byte[0] == b'\n' {
+                break pos + 1;
+            }
+            if pos == 0 {
+                break 0;
+            }
+        }
+    };
+    file.read_exact_at(buf, line_start)
 }
 
-fn array_seek(array: &[u8], buf: &mut [u8; 40], mid: u64) -> io::Result<()> {
-    let mid_usize = mid as usize;
-    if mid_usize + 40 > array.len() {
+fn array_seek(array: &[u8], buf: &mut [u8; 35], mid: u64) -> io::Result<()> {
+    let mid = mid as usize;
+    let line_start = match array[..mid].iter().rposition(|&b| b == b'\n') {
+        Some(pos) => pos + 1,
+        None => 0,
+    };
+    if line_start + 35 > array.len() {
         return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "read out of bounds"));
     }
-    buf.copy_from_slice(&array[mid_usize..mid_usize + 40]);
-
-    let colon_index = buf.iter().position(|&r| r == b':');
-    let newline_index = buf.iter().position(|&r| r == b'\n');
-    let index: u64;
-
-    if colon_index.is_some() {
-        index = colon_index.unwrap().try_into().unwrap();
-    } else if newline_index.is_some() {
-        index = newline_index.unwrap().try_into().unwrap();
-    } else {
-        return Ok(());
-    }
-    let offset = mid + index - 40;
-    array_seek(array, buf, offset)
+    buf.copy_from_slice(&array[line_start..line_start + 35]);
+    Ok(())
 }
