@@ -3,34 +3,31 @@ use sha1::{Digest, Sha1};
 use std::convert::TryInto;
 use std::fs::File;
 use std::path::Path;
-use std::str;
 
 mod binary_search;
 mod password_downloader;
 
-static DEFAULT_PATH: &str = "passwords.txt";
-
 pub struct Params {
     pub pass: String,
-    pub path: String,
+    pub path: Option<String>,
 }
 
 impl Params {
     pub fn new(args: &[String]) -> Result<Params, Error> {
         if args.len() == 3 {
             return Ok(Params {
-                path: args[1].clone(),
+                path: Some(args[1].clone()),
                 pass: args[2].clone(),
             });
         } else if args.len() == 2 {
             return Ok(Params {
                 pass: args[1].clone(),
-                path: String::from(DEFAULT_PATH),
+                path: None,
             });
         }
 
         return Err(Error::msg(
-            "Too few arguments.\nPlease provide a search term and a file name.",
+            "Too few arguments.\nPlease provide a password, and optionally a hash file.",
         ));
     }
 }
@@ -39,16 +36,14 @@ pub fn file_search(params: Params) -> Result<(), Error> {
     let hashed_pass = format!("{:X}", Sha1::digest(&params.pass));
     let search_token: [u8; 40] = hashed_pass.as_bytes().try_into()?;
 
+    let path_str = params.path.ok_or_else(|| Error::msg("No file path provided"))?;
     let file: File;
-    let path = Path::new(&params.path);
+    let path = Path::new(&path_str);
     if Path::exists(path) {
         file = File::open(path)?;
     } else {
-        println!(
-            "File {} not found. Downloading from HIBP API...",
-            &params.path
-        );
-        file = password_downloader::download_passwords(&params.path)?;
+        println!("File {} not found. Downloading from HIBP API...", &path_str);
+        file = password_downloader::download_passwords(&path_str)?;
     }
     let file_len = file.metadata()?.len();
     println!(

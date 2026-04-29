@@ -8,15 +8,19 @@ fn main() {
 
     let params = Params::new(&args).unwrap_or_else(|err| {
         println!("Problem parsing arguments: {}", err);
-
         process::exit(1);
     });
 
-    println!("Searching for {} in file {}", params.pass, params.path);
+    let result = if let Some(path) = &params.path {
+        println!("Searching for {} in file {}", params.pass, path);
+        pwnage_checker::file_search(params)
+    } else {
+        println!("Searching for {} via HIBP range API", params.pass);
+        pwnage_checker::range_search(params)
+    };
 
-    if let Err(e) = pwnage_checker::file_search(params) {
+    if let Err(e) = result {
         println!("Application error: {}", e);
-
         process::exit(1);
     }
 }
