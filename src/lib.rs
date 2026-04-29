@@ -53,8 +53,8 @@ pub fn file_search(params: Params) -> Result<(), Error> {
     );
 
     match binary_search::file_search(file, search_token, file_len) {
-        Some(index) => println!("Password \"{}\" found at index: {}", &params.pass, index),
-        None => println!("Password \"{}\" not found", &params.pass),
+        Some(index) => println!("Hash {} found at index: {}", hashed_pass, index),
+        None => println!("Hash {} not found", hashed_pass),
     }
 
     Ok(())
@@ -69,8 +69,8 @@ pub fn range_search(params: Params) -> Result<(), Error> {
     let end = arr.len() as u64;
 
     match binary_search::range_search(&arr, suffix_token, end) {
-        Some(index) => println!("Password \"{}\" found at index: {}", &params.pass, index),
-        None => println!("Password \"{}\" not found", &params.pass),
+        Some(index) => println!("Hash {} found at index: {}", hashed_pass, index),
+        None => println!("Hash {} not found", hashed_pass),
     }
 
     Ok(())

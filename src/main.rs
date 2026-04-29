@@ -21,11 +21,9 @@ fn main() {
         })
     };
 
-    let result = if let Some(path) = &params.path {
-        println!("Searching for {} in file {}", params.pass, path);
+    let result = if let Some(_path) = &params.path {
         pwnage_checker::file_search(params)
     } else {
-        println!("Searching for {} via HIBP range API", params.pass);
         pwnage_checker::range_search(params)
     };
 
